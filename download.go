@@ -18,7 +18,7 @@ type DataSandi struct {
 }
 
 func (ds *DataSandi) save() error {
-	filename := "RAW/"+ds.stasiun + ".txt.temp"
+	filename := "RAW/"+ds.stasiun + ".txt"
 	separator := []byte("\n")
 	isi := append(ds.waktu, separator...)
 	isi = append(isi, ds.sandi...)
