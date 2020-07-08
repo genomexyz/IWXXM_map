@@ -358,7 +358,7 @@ func (st *SandiTranslated) save() string {
 	awan_jumlah := "Cerah"
 	if len(st.awanjumlah) > 0 {
 		if st.awanjumlah[0] == "FEW" {
-			awan_jumlah = "Sedikit Berawan"
+			awan_jumlah = "Cerah Berawan"
 		} else if st.awanjumlah[0] == "SCT" {
 			awan_jumlah = "Berawan"
 		} else if st.awanjumlah[0] == "BKN" {
@@ -389,6 +389,7 @@ func (st *SandiTranslated) save() string {
 func main() {
 	var stasiun_list []string
 	var stasiun_list_coordinate [][]string
+	var nama_stasiun []string
 	
 	//read file, extract ICAO code
 	f, err := os.Open(file_stasiun)
@@ -411,11 +412,12 @@ func main() {
 		}
 		stasiun_list = append(stasiun_list, record[0])
 		stasiun_list_coordinate = append(stasiun_list_coordinate, []string{record[2], record[3]})
+		nama_stasiun = append(nama_stasiun, record[1])
 	}
 	fmt.Println(stasiun_list)
 	f.Close()
 	
-	str_translated := "icao_code,lat,lon,time,arah_angin,kecepatan_angin,"+
+	str_translated := "icao_code,nama_stasiun,lat,lon,time,arah_angin,kecepatan_angin,"+
 	"anginvar1, anginvar2,visibility,jumlah_awan,tinggi_awan,cuaca,suhu,dewpoint,tekanan"
 	for i := range stasiun_list {
 		ds, err := GenDataSandi(stasiun_list[i])
@@ -427,7 +429,7 @@ func main() {
 		translated_sandi := GenSandiTranslated(ds)
 		translated_segment := translated_sandi.save()
 		
-		str_translated += stasiun_list[i]+","+stasiun_list_coordinate[i][0]+","+
+		str_translated += stasiun_list[i]+","+nama_stasiun[i]+","+stasiun_list_coordinate[i][0]+","+
 		stasiun_list_coordinate[i][1]+","+translated_segment+"\n"
 		
 		

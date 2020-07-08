@@ -20,12 +20,12 @@
 
 
 
-<div id="mapid" style="width: 1000px; height: 700px;"></div>
+<div id="mapid" style="width: 100%; height: 700px;"></div>
 <script>
 
 	var mymap = L.map('mapid').setView([0, 123], 4);
 
-	L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+	L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 		maxZoom: 18,
 		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
 			'<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
@@ -34,6 +34,15 @@
 		tileSize: 512,
 		zoomOffset: -1
 	}).addTo(mymap);
+
+var Stamen_TonerLabels = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-labels/{z}/{x}/{y}{r}.{ext}', {
+	attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	subdomains: 'abcd',
+	minZoom: 0,
+	maxZoom: 20,
+	ext: 'png'
+}).addTo(mymap);
+
 
 /*	L.marker([51.5, -0.09]).addTo(mymap)
 		.bindPopup("<b>Hello world!</b><br />I am a popup.").openPopup();
@@ -98,9 +107,78 @@ function loadbandara() {
 		}
 		
 		for (i = 0; i < all_data.length; i++) {
-			console.log(all_data[i][1], all_data[i][2])
-			bandara_marker.push(L.marker([all_data[i][1], all_data[i][2]], {icon: bandara}));
-			bandara_marker[i].bindPopup("Halo");
+			var intensity = "";
+			var jam = parseFloat(all_data[i][4].substring(11, 13));
+			var menit = parseFloat(all_data[i][4].substring(14, 16));
+			if (jam < 11 || jam > 22) {
+				var daynight = "DAY";
+			} else {
+				var daynight = "NIGHT";
+			}
+			
+			if (all_data[i][12].includes("-")) {
+				intensity = "m";
+			} else if (all_data[i][12].includes("+")) {
+				intensity = "p";
+			}
+			
+			if (all_data[i][12] == "NOSIG") {
+				if (all_data[i][10] == "Cerah Berawan") {
+					var icon_cuaca = daynight+"-CLEAR.png";
+					var cuaca = "Cerah";
+				} else if (all_data[i][10] == "Berawan") {
+					var icon_cuaca = daynight+"-CLEAR-CLOUDY.png";
+					var cuaca = "Cerah Berawan";
+				} else if (all_data[i][10] == "Sangat Berawan") {
+					var icon_cuaca = daynight+"-CLOUDY.png";
+					var cuaca = "Sangat Berawan";
+				} else if (all_data[i][10] == "Berawan Penuh") {
+					var icon_cuaca = daynight+"-CLOUDY.png";
+					var cuaca = "Berawan Penuh";
+				}
+			} else {
+				var cuaca_str = all_data[i][12].replace("+", "");
+				cuaca_str = cuaca_str.replace("-", "");
+				var icon_cuaca = daynight+"-"+intensity+cuaca_str+".png";
+				var cuaca = cuaca_str;
+			}
+			
+			//visibility
+			if (all_data[i][9] < 0) {
+				var vis = "UNKNOWN";
+			} else {
+				var vis = all_data[i][9]
+			}
+			
+			console.log(jam, menit, icon_cuaca)
+//			console.log(all_data[i][1], all_data[i][2])
+			bandara_marker.push(L.marker([all_data[i][2], all_data[i][3]], {icon: L.icon({
+				iconUrl: "static/icon/"+icon_cuaca,
+
+				iconSize:	 [37, 37], // size of the icon
+				iconAnchor:   [14, 14], // point of the icon which will correspond to marker's location
+				popupAnchor:  [6, 0] // point from which the popup should open relative to the iconAnchor
+			})}));
+			var bindPopup_str = "Cuaca Terkini Bandara <b>"+all_data[i][1]+" ("+all_data[i][0]+")</b>:<br><br>"+
+			"<table>"+
+			"<tr>"+
+			"<td>Arah Angin</td><td>:</td><td>"+all_data[i][5]+"°</td>"+
+			"</tr>"+"<tr>"+
+			"<td>Kecepatan Angin</td><td>:</td><td>"+all_data[i][6]+" knot</td>"+
+			"</tr>"+"<tr>"+
+			"<td>Suhu</td><td>:</td><td> "+all_data[i][13]+" °C</td>"+
+			"</tr>"+"<tr>"+
+			"<td>Suhu Titik Embun</td><td>:</td><td> "+all_data[i][14]+" °C</td>"+
+			"</tr>"+"<tr>"+
+			"<td>Tekanan</td><td>:</td><td> "+all_data[i][15]+" mb</td>"+
+			"</tr>"+"<tr>"+
+			"<td>Cuaca</td><td>:</td><td>"+cuaca+"</td>"+
+			"</tr>"+"<tr>"+
+			"<td>Jarak Pandang</td><td>:</td><td> "+all_data[i][9]+" Meter</td>"+
+			"</tr>"+
+			"</table><br>"+
+			"Di perbaharui terkahir pada <b>"+all_data[i][4]+"</b>. Sumber data <b>aviation.bmkg.go.id</b>";
+			bandara_marker[i].bindPopup(bindPopup_str);
 			bandara_marker[i].addTo(mymap);
 		}
 	}
